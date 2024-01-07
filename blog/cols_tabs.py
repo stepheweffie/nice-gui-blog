@@ -36,10 +36,10 @@ def header():
                 ui.button('Accept', on_click= true_cookie).style('color: black;')
                 ui.button('Decline', on_click=false_cookie).style('color: black;')
 
-    if not authenticated:
+    if authenticated:
         with ui.footer(value=True):
             ui.button('Search Posts', on_click=lambda: search_footer.toggle())
-    if not authenticated:
+    if authenticated:
         search_footer = ui.footer(value=False)
         with search_footer:
             ui.button('', icon='close', on_click=lambda: search_footer.toggle()).classes('text-xl')
