@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Code Editor</title>
+        <script src="src-min/ace.js" type="text/javascript" charset="utf-8"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+<div class="col-xs-12 col-md-12 col-lg-12 col-xl-12">
+    <center><h1>Code Editor</h1>
+    <div class="toolbar row container">
+        <button id="save" class="btn btn-lg btn-dark col-xs-6 col-sm-3 col-md-2 col-lg-1 col-xl-1 m-2">Save</button>
+        <button id="load" class="btn btn-lg  btn-dark col-xs-6 col-sm-3 col-md-2 col-lg-1 col-xl-1 m-2">Load</button>
+        <button id="reset" class="btn btn-lg btn-dark col-xs-6 col-sm-3 col-md-2 col-lg-1 col-xl-1 m-2">Reset</button>
+        <button id="run" class="btn btn-dark btn-lg col-xs-12 col-sm-9 col-md-6 col-lg-5 col-xl-5">Run This Code</button>
+        <button id="html" class="btn btn-lg  btn-dark col-xs-6 col-sm-3 col-md-2 col-lg-1 col-xl-1 m-2">HTML</button>
+        <button id="js" class="btn btn-lg  btn-dark col-xs-6 col-sm-3 col-md-2 col-lg-1 col-xl-1 m-2">JS</button>
+        <button id="css" class="btn btn-lg  btn-dark col-xs-6 col-sm-3 col-md-2 col-lg-1 col-xl-1 m-2">CSS</button>
+    </div>
+    <div class="row col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 ml-2 mt-4">
+        <div class="col-xl-6" style="max-width: 100%;">
+        <select class="form-select-lg col-xl-12"
+                aria-label=".form-select example">
+          <option selected>Choose Layout</option>
+          <option value="1">One</option>
+          <option value="2">Two</option>
+          <option value="3">Three</option>
+        </select></div>
+        <div class="col-xl-6" style="max-width: 100%;">
+        <select class="form-select-lg col-xl-12"
+                aria-label=".form-select example">
+          <option selected>Choose Theme</option>
+          <option value="1">One</option>
+          <option value="2">Two</option>
+          <option value="3">Three</option>
+        </select></div>
+    </div>
+    </div>
+</center>
+
+    <div id="editor" style="position: absolute; width: 49%; margin-top: 8px;">
+    </div>
+
+
+    <script>
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/dracula");
+    editor.session.setMode("ace/mode/html");
+        editor.setOptions({
+            enableBasicAutocompletion: true,
+            enableSnippets: true,
+            enableLiveAutocompletion: true,
+            maxLines: Infinity,
+            minLines: 40,
+            fontSize: 14,
+            showPrintMargin: false,
+            highlightActiveLine: true,
+            highlightSelectedWord: true,
+            readOnly: false,
+            cursorStyle: "ace",
+            mergeUndoDeltas: true,
+            behavioursEnabled: true,
+            wrapBehavioursEnabled: true,
+            autoScrollEditorIntoView: false,
+            copyWithEmptySelection: false,
+            useSoftTabs: true,
+            navigateWithinSoftTabs: false,
+            hScrollBarAlwaysVisible: false,
+            vScrollBarAlwaysVisible: true,
+            highlightGutterLine: true,
+            animatedScroll: false,
+            showInvisibles: false,
+            showFoldWidgets: true,
+            showLineNumbers: true,
+            showGutter: true,
+        });
+
+    var isPlaceholderActive = true;
+    editor.setValue("This is the Dracula theme which highlights parent tags of open child tags. \n" +
+        "Autocomplete is also very nice!", -1);
+
+    editor.on("focus", function() {
+        if (isPlaceholderActive) {
+            editor.setValue("", -1);
+            isPlaceholderActive = false;
+        }
+    });
+
+    </script>
+</body>
+</html>

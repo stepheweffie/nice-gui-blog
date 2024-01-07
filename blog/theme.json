@@ -1,0 +1,16 @@
+{
+    "theme": "Dark Bold",
+    "classes": {
+        "primary": "#000000",
+        "secondary": "#f500d0",
+        "accent": "#9e14f5",
+        "positive": "#d0ff63",
+        "negative": "#fc3048",
+        "info": "#00fff7",
+        "warning": "#f3f700",
+        "dark": "#1d1d1d"
+    },
+    "background": {
+        "bg-color": "#1d1d1d"
+    }
+}
