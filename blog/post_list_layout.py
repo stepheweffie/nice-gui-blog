@@ -150,6 +150,35 @@ async def main_page(client: Client) -> None:
                     one_tab = ui.tab_panel(one)
                     make_search_tab(one_tab)
 
+                    async def verify_subscriber() -> None:
+                        async with async_session() as session:
+                            try:
+                                find = select(Subscriber).where(Subscriber.email == app.storage.user.get('email'))
+                                result = await session.execute(find)
+                                subscriber = result.scalars().first()
+                                subscriber.verify_subscriber(signup_password, signup_code)
+                                await session.commit()
+                            except IntegrityError:
+                                pass
+                            app.storage.user.update('authenticated', True)
+                            ui.notify('Login Successful', color='positive')
+                            await session.rollback()
+                            ui.open('/')
+
+                    with ui.tab_panel(two_tab):
+                        with ui.column().classes('items-center'):
+                            with ui.card().classes('w-96'):
+                                ui.label('Verify').classes('text-xl h-full')
+                                signup_password = ui.input('Password').classes('w-full')
+                                signup_code = ui.input('Secret Code').classes('w-full')
+                                ui.button('Verify and Login', on_click=verify_subscriber).classes(
+                                    'w-full transition-all')
+                            with ui.row():
+                                ui.label(f"By subscribing, you agree to our").classes('text-sm')
+                                ui.link(f"{terms}").classes('text-sm')
+                                ui.label(f"and").classes('text-sm')
+                                ui.link(f"{privacy}").classes('text-sm')
+
                     async def create_subscriber() -> None:
                         async with async_session() as session:
                             try:
@@ -161,26 +190,12 @@ async def main_page(client: Client) -> None:
                                 await session.commit()
                                 ui.notify(f'Subscription Successful. Please check {signup_email.value}', color='positive')
                                 app.storage.user.update(
-                                    {'email': signup_email.value, 'authenticated': False, 'is_admin': False, 'subscribed':
-                                        True})
+                                    {'email': signup_email.value, 'authenticated': False, 'is_admin': False,
+                                     'subscribed': True})
                                 await session.rollback()
                             except IntegrityError:
                                 ui.notify('Email already exists', color='negative')
                             ui.open('/')
-
-                    with ui.tab_panel(two_tab):
-                        with ui.column().classes('items-center'):
-                            with ui.card().classes('w-96'):
-                                ui.label('Verify').classes('text-xl h-full')
-                                signup_password = ui.input('Password').classes('w-full')
-                                signup_code = ui.input('Secret Code').classes('w-full')
-                                ui.button('Verify and Login', on_click=create_subscriber).classes(
-                                    'w-full transition-all')
-                            with ui.row():
-                                ui.label(f"By subscribing, you agree to our").classes('text-sm')
-                                ui.link(f"{terms}").classes('text-sm')
-                                ui.label(f"and").classes('text-sm')
-                                ui.link(f"{privacy}").classes('text-sm')
 
                     with ui.tab_panel(two_two):
                         with ui.column().classes('items-center'):
@@ -219,7 +234,7 @@ async def main_page(client: Client) -> None:
                                 sub_email = ui.input('User Email').classes('w-full')
                                 sub_pass = ui.input('Password', password=True, password_toggle_button=True)\
                                     .classes('w-full')
-                                ui.button('Log in').classes('w-full').on('click', login_subscriber)
+                                ui.button('Log in', on_click=login_subscriber).classes('w-full')
                             with ui.row():
                                 ui.link('Forgot Password?').classes('w-full')
 
