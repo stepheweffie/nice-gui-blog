@@ -171,6 +171,7 @@ async def main_page(client: Client) -> None:
                                 signup_code = ui.input('Secret Code').classes('w-full')
                                 ui.button('Verify and Login', on_click=verify_subscriber).classes(
                                     'w-full transition-all')
+
                             with ui.row():
                                 ui.label(f"By subscribing, you agree to our").classes('text-sm')
                                 ui.link(f"{terms}").classes('text-sm')

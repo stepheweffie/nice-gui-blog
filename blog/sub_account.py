@@ -3,7 +3,6 @@ from post_list_layout import make_search_tab
 from db_utils import async_session
 from models import Subscriber
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
 from security_layer import dash_security_layer
 
 
@@ -15,8 +14,11 @@ async def update_subscriber() -> None:
             subscriber = result.scalars().first()
             print(subscriber.code)
             await session.commit()
-        except IntegrityError:
-            pass
+        except Exception as e:
+            session.rollback()
+            print(f"An error occurred: {e}")
+        finally:
+            session.close()
 
 
 async def delete_subscriber() -> None:
@@ -27,8 +29,11 @@ async def delete_subscriber() -> None:
             subscriber = result.scalars().first()
             session.delete(subscriber)
             await session.commit()
-        except IntegrityError:
-            pass
+        except Exception as e:
+            session.rollback()
+            print(f"An error occurred: {e}")
+        finally:
+            session.close()
 
 
 async def update_password(button: ui.button) -> None:
@@ -40,8 +45,11 @@ async def update_password(button: ui.button) -> None:
             subscriber = result.scalars().first()
             print(subscriber.code)
             await session.commit()
-        except IntegrityError:
-            pass
+        except Exception as e:
+            session.rollback()
+            print(f"An error occurred: {e}")
+        finally:
+            session.close()
 
 
 def set_timer(switch: ui.switch) -> None:

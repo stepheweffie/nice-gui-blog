@@ -12,3 +12,7 @@ def create_subscription():
 
 def subscription_modal():
     return True
+
+
+def cart_modal():
+    return True
