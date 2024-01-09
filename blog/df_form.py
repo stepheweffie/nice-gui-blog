@@ -31,10 +31,13 @@ def data_page():
 @ui.page('/')
 def index():
     new = {}
-    name = ui.input(label="name:").bind_value_to(new, 'name')
-    address = ui.textarea(label="address:").bind_value_to(new, 'address')
-    age = ui.number(label='age:').bind_value_to(new,'age')
-    ui.button("submit", on_click=lambda: request_my_dict(new))
+    with ui.row().classes('justify-center w-full'):
+        with ui.column().style('padding-left: 0%; padding-top: 10%;'):
+            ui.label("Message Form").classes('text-2xl')
+            name = ui.input(label="name:").bind_value_to(new, 'name').classes('w-96')
+            message = ui.textarea(label="message:").bind_value_to(new, 'message').classes('w-96')
+            age = ui.number(label='age:').bind_value_to(new,'age').classes('w-96')
+            ui.button("submit", on_click=lambda: request_my_dict(new)).classes('w-96')
 
 
 ui.run()

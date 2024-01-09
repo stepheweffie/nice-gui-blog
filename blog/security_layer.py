@@ -3,7 +3,7 @@ from nicegui import ui
 password = 'secret'
 
 
-def check_password(modals: list, passw: str):
+def password_check(modals: list, passw: str):
     if passw == password:
         modals[0].style(replace='display: none;')
         modals[1].style(replace='display: none;')
@@ -27,7 +27,7 @@ def pass_security_layer():
             pw = ui.input(label='Password', password=True, password_toggle_button=True)\
                 .style(replace='width: 93%; height: 10%;').classes('mt-5')
         with ui.row().classes('justify-center'):
-            ui.button('Submit', on_click=lambda: check_password([security_modal, login_modal], pw.value)
+            ui.button('Submit', on_click=lambda: password_check([security_modal, login_modal], pw.value)
                       ).style(
                 replace='width: 93%; height: 10%;').classes(
                 'bg-blue-500 hover:bg-blue-700 text-white font-bold mt-10 mb-5')
