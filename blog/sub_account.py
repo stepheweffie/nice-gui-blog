@@ -43,36 +43,26 @@ def header():
         with ui.left_drawer(value=False).classes('mx-auto p-0') as left_drawer:
             with ui.row().classes('w-full no-wrap justify-end mt-4'):
                 ui.label('Account Settings').classes('text-3xl m-4')
-                ui.button('', icon='close', on_click=lambda: left_drawer.toggle()).classes('text-lg')
+                ui.button('', icon='close', on_click=lambda: left_drawer.toggle()).classes('text-md')
             with ui.page_sticky(position='bottom-right', x_offset=20, y_offset=20):
                 ui.button(on_click=ui.open('/logout'), icon='logout').props('fab')
             with ui.expansion('Subscriber Information').classes('w-full text-xl'):
                 with ui.row().classes('w-full no-wrap'):
                     ui.input('Email', value=app.storage.user.get('email')).classes(
                         'full-width text-lg')
-                    ui.button('', icon='save', on_click=lambda: app.storage.user.update({'email': ui.input('Email')
-                                                                                    .value})).classes('text-lg')
+
                 with ui.row().classes('w-full no-wrap'):
                     name_input = ui.input('First Name', value=app.storage.user.get('first_name')).classes(
                         'full-width text-lg')
-                    ui.button('', icon='save', on_click=lambda: app.storage.user.update({'first_name': name_input
-                                                                                    .value})).classes('text-lg')
+
                 with ui.row().classes('w-full no-wrap'):
                     lname_input = ui.input('Last Name', value=app.storage.user.get('last_name')).classes(
                         'full-width text-lg')
-                    ui.button('', icon='save', on_click=lambda: app.storage.user.update({'last_name': lname_input
-                                                                                    .value})).classes('text-lg')
+
                 with ui.row().classes('w-full no-wrap'):
                     username_input = ui.input('Username', value=app.storage.user.get('username')).classes(
                         'full-width text-lg')
-                    ui.button('', icon='save', on_click=lambda: app.storage.user.update({'username': username_input
-                                                                                    .value})).classes('text-lg')
-                with ui.row().classes('w-full no-wrap'):
-                    options = ['Free', 'Tier 1', 'Tier 2', 'Tier 3']
-                    tier_select = ui.select(options, label='Subscription Tier', value=app.storage.user.get('tier')).classes(
-                        'full-width text-lg')
-                    ui.button('', icon='save', on_click=lambda: app.storage.user.update({'tier': tier_select
-                                                                                    .value})).classes('text-lg')
+
                 with ui.row().classes('w-full no-wrap justify-center'):
                     ui.button('Update Account Info', on_click=lambda: update_subscriber()).classes('w-full text-lg')
 
@@ -90,6 +80,33 @@ def header():
 
                 with ui.row().classes('w-full no-wrap'):
                     ui.button('Save', on_click=lambda: update_password()).classes('w-full text-lg')
+
+            with ui.expansion('Manage Subscription').classes('w-full text-xl'):
+                with ui.row().classes('w-full no-wrap'):
+                    ui.label('Current Subscription Tier: ').classes('text-lg')
+                    ui.label(app.storage.user.get('tier')).classes('text-lg')
+
+                with ui.row().classes('w-full no-wrap'):
+                    options = ['Free', 'Tier 1', 'Tier 2', 'Tier 3']
+                    tier_select = ui.select(options, label='Change Subscription Tier', value=app.storage.user.get('tier')).classes(
+                        'full-width text-lg')
+
+                with ui.row().classes('w-full no-wrap'):
+                    ui.button('Update Subscription', on_click=lambda: update_subscriber()).classes('w-full text-lg')
+
+            with ui.expansion('Payment Information').classes('w-full text-xl'):
+                with ui.row().classes('w-full no-wrap'):
+                    ui.button('Change Payment Method', on_click=lambda: update_subscriber()).classes('w-full text-lg')
+
+            with ui.expansion('Manage Account').classes('w-full text-xl'):
+                with ui.row().classes('w-full no-wrap'):
+                    ui.switch('2FA', value=False).classes('text-lg')
+
+                with ui.row().classes('w-full no-wrap'):
+                    ui.switch('Auto Locking Screen', value=False).classes('text-lg')
+
+                with ui.row().classes('w-full no-wrap justify-center'):
+                    ui.button('Delete Account', on_click=lambda: update_subscriber()).classes('w-full text-lg')
 
     if not authenticated and not cookied:
         def true_cookie():
