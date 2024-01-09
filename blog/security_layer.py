@@ -15,4 +15,6 @@ def dash_security_layer():
         ui.input(label='Password', password=True)
         ui.button('Login').style(replace='width: 93%; height: 10%;').classes(
             'bg-blue-500 hover:bg-blue-700 text-white font-bold m-3')
+        with ui.row():
+            ui.link('Forgot Password?').classes('w-full')
 

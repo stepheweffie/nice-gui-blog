@@ -4,6 +4,7 @@ from db_utils import async_session
 from models import Subscriber
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
+from security_layer import dash_security_layer
 
 
 async def update_subscriber() -> None:
@@ -18,7 +19,8 @@ async def update_subscriber() -> None:
             pass
 
 
-async def update_password() -> None:
+async def update_password(button: ui.button) -> None:
+    button.visible = False
     async with async_session() as session:
         try:
             find = select(Subscriber).where(Subscriber.email == app.storage.user.get('email'))
@@ -30,12 +32,48 @@ async def update_password() -> None:
             pass
 
 
+def set_timer(switch: ui.switch) -> None:
+    if switch.value:
+        ui.timer(3.0, lambda: ui.notify('Account Locked', color="warning"), once=True)
+
+
+def lock_menu(switch: ui.switch, drawer: ui.left_drawer) -> None:
+    if switch.value:
+        return dash_security_layer()
+    drawer.toggle()
+
+
 def header():
     authenticated = app.storage.user.get('authenticated')
     cookied = app.storage.user.get('cookie')
+
+    def call_time_card():
+        time_card.visible = auto_lock.value
+
+    def set_time_card(minutes: str, times: list):
+        # zip the options with the time in seconds and make a timer to set off
+        seconds = [60, 300, 600, 900, 1800, 3600, 7200, 14400, 28800, 43200, 86400]
+        times_in_seconds = zip(times, seconds)
+        for time_str, time_sec in times_in_seconds:
+            if minutes == time_str:
+                ui.timer(time_sec, lambda: dash_security_layer, once=True)
+                return time_sec
+        time_card.visible = False
+
+    time_card = ui.card().classes('w-96').style(replace='position: absolute; top: 0; left: 0; '
+                                                        'z-index: 10000;')
+    time_card.visible = False
+    with time_card:
+        ui.label('Lock Screen Timer').classes('text-3xl')
+        with ui.row().classes('w-full no-wrap'):
+            timer = ui.select(
+                ['1 minute', '5 minutes', '10 minutes', '15 minutes', '30 minutes', '1 hour', '2 hours', '4 hours',
+                 '8 hours', '12 hours', '24 hours'], value='30 minutes').classes('text-lg')
+            ui.button('Save', on_click=lambda e: set_time_card(e, options)).classes('w-full text-lg')
+
     with ui.header().classes(replace='row items-center'):
         if not authenticated:
-            ui.button(on_click=lambda: left_drawer.toggle(), icon='menu').props('flat color=white')
+            ui.button(on_click=lambda: lock_menu(menu_lock_switch, left_drawer), icon='menu').props('flat color=white')
         ui.label('NiceGUI Blog').classes('text-4xl m-4')
 
     if not authenticated:
@@ -46,6 +84,7 @@ def header():
                 ui.button('', icon='close', on_click=lambda: left_drawer.toggle()).classes('text-md')
             with ui.page_sticky(position='bottom-right', x_offset=20, y_offset=20):
                 ui.button(on_click=ui.open('/logout'), icon='logout').props('fab')
+
             with ui.expansion('Subscriber Information').classes('w-full text-xl'):
                 with ui.row().classes('w-full no-wrap'):
                     ui.input('Email', value=app.storage.user.get('email')).classes(
@@ -68,7 +107,12 @@ def header():
 
             with ui.expansion('Manage Password').classes('w-full text-xl'):
                 with ui.row().classes('w-full no-wrap'):
-                    ui.button('Send Code', on_click=lambda: update_password()).classes('w-full text-lg')
+                    code_button = ui.button('Send Code', on_click=lambda: update_password(code_button)).classes(
+                        'w-full text-lg')
+                    resend_button = ui.button('Resend Code', on_click=lambda: update_password(resend_button)).classes(
+                        'w-full text-lg')
+
+                    resend_button.visible = not code_button.visible
 
                 with ui.row().classes('w-full no-wrap'):
                     ui.input('New Password', password=True, password_toggle_button=True).classes(
@@ -103,7 +147,14 @@ def header():
                     ui.switch('2FA', value=False).classes('text-lg')
 
                 with ui.row().classes('w-full no-wrap'):
-                    ui.switch('Auto Locking Screen', value=False).classes('text-lg')
+                    auto_lock = ui.switch('Auto Locking Screen', value=False, on_change=call_time_card).classes(
+                        'text-lg')
+
+                with ui.row().classes('w-full no-wrap'):
+                    ui.switch('NSFW Notify', value=False).classes('text-lg')
+
+                with ui.row().classes('w-full no-wrap'):
+                    menu_lock_switch = ui.switch('Lock Account Menu', value=False).classes('text-lg')
 
                 with ui.row().classes('w-full no-wrap justify-center'):
                     ui.button('Delete Account', on_click=lambda: update_subscriber()).classes('w-full text-lg')
