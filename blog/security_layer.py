@@ -11,7 +11,6 @@ def dash_security_layer():
                 'background-color: rgba(255, 255, 255, 1.0); top: 50%; left: 50%; '
                 'z-index: 1000; transform: translate(-50%, -50%); padding: 10px;')
     with login_modal:
-        ui.input(label='Username')
         ui.input(label='Password', password=True)
         ui.button('Login').style(replace='width: 93%; height: 10%;').classes(
             'bg-blue-500 hover:bg-blue-700 text-white font-bold m-3')

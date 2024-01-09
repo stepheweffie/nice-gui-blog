@@ -19,6 +19,18 @@ async def update_subscriber() -> None:
             pass
 
 
+async def delete_subscriber() -> None:
+    async with async_session() as session:
+        try:
+            find = select(Subscriber).where(Subscriber.email == app.storage.user.get('email'))
+            result = await session.execute(find)
+            subscriber = result.scalars().first()
+            session.delete(subscriber)
+            await session.commit()
+        except IntegrityError:
+            pass
+
+
 async def update_password(button: ui.button) -> None:
     button.visible = False
     async with async_session() as session:
@@ -144,7 +156,7 @@ def header():
 
             with ui.expansion('Manage Account').classes('w-full text-xl'):
                 with ui.row().classes('w-full no-wrap'):
-                    ui.switch('2FA', value=False).classes('text-lg')
+                    two_factor_switch = ui.switch('2FA', value=False).classes('text-lg')
 
                 with ui.row().classes('w-full no-wrap'):
                     auto_lock = ui.switch('Auto Locking Screen', value=False, on_change=call_time_card).classes(
@@ -157,7 +169,7 @@ def header():
                     menu_lock_switch = ui.switch('Lock Account Menu', value=False).classes('text-lg')
 
                 with ui.row().classes('w-full no-wrap justify-center'):
-                    ui.button('Delete Account', on_click=lambda: update_subscriber()).classes('w-full text-lg')
+                    ui.button('Delete Account', on_click=lambda: delete_subscriber).classes('w-full text-lg')
 
     if not authenticated and not cookied:
         def true_cookie():
