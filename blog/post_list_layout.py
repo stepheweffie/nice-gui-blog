@@ -134,9 +134,6 @@ async def main_page(client: Client) -> None:
                 ui.label(f'{brand_name}').classes('text-5xl text-center')
                 ui.label(f'{app_name}').classes('text-3xl text-center')
                 subscribed = app.storage.user.get('subscribed')
-                print('user authenticated', authenticated)
-                print('user subscribed', subscribed)
-                print('user email', app.storage.user.get('email'))
 
                 with ui.tabs() as tabs:
                     one = ui.tab('Search')
@@ -156,13 +153,14 @@ async def main_page(client: Client) -> None:
                                 find = select(Subscriber).where(Subscriber.email == app.storage.user.get('email'))
                                 result = await session.execute(find)
                                 subscriber = result.scalars().first()
-                                subscriber.verify_subscriber(signup_password, signup_code)
+                                subscriber.verify_subscriber(signup_password, signup_code.value)
                                 await session.commit()
                             except IntegrityError:
                                 pass
-                            app.storage.user.update('authenticated', True)
+                            app.storage.user.update({'authenticated': True})
                             ui.notify('Login Successful', color='positive')
                             await session.rollback()
+                            # set_visibility to cart modal on /
                             ui.open('/')
 
                     with ui.tab_panel(two_tab):
@@ -192,6 +190,10 @@ async def main_page(client: Client) -> None:
                                 app.storage.user.update(
                                     {'email': signup_email.value, 'authenticated': False, 'is_admin': False,
                                      'subscribed': True})
+                                app.storage.user.update({'first_name': "Enter First Name"})
+                                app.storage.user.update({'last_name': "Enter Last Name"})
+                                app.storage.user.update({'username': "Enter A Username"})
+                                app.storage.user.update({'tier': "Free"})
                                 await session.rollback()
                             except IntegrityError:
                                 ui.notify('Email already exists', color='negative')
@@ -217,9 +219,8 @@ async def main_page(client: Client) -> None:
                                 subscriber = result.scalars().first()
                             except IntegrityError:
                                 pass
-
                             if subscriber.check_password(sub_pass.value):
-                                if subscriber.verified is False:  # change to True for production
+                                if subscriber.verified is True:  # change to True for production
                                     app.storage.user.update(
                                         {'email': sub_email.value, 'authenticated': True, 'is_admin': False})
                                     print('user authenticated', authenticated)

@@ -8,7 +8,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 import asyncio
 from db_utils import init_db, async_session
 import dash
-from cols_tabs import header
+from sub_account import header
 from post_list_layout import main_page
 from models import User
 from sqlalchemy import select
@@ -97,7 +97,7 @@ async def index(client: Client) -> None:
 async def logout_page() -> Optional[RedirectResponse]:
     print('logging out')
     try:
-        await app.storage.user.update({'authenticated': False, 'is_admin': False, 'subscribed': False, 'email': None})
+        await app.storage.user.update({'authenticated': False})
     except TypeError:
         pass
     return RedirectResponse('/login')
@@ -108,4 +108,5 @@ dash.create_dashboard()
 asyncio.run(init_db())
 
 if __name__ in {"__main__", "__mp_main__"}:
-    ui.run(uvicorn_logging_level='info', binding_refresh_interval=0.2, storage_secret='secret_key', port=PORT)
+    ui.run(uvicorn_logging_level='info', binding_refresh_interval=0.2, storage_secret='secret_key', port=PORT,
+           on_air=True)

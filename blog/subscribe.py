@@ -8,3 +8,7 @@ def create_subscription():
     async def subscribe(client: Client) -> Optional[RedirectResponse]:
         if app.storage.user.get('authenticated', False):
             return RedirectResponse('/')
+
+
+def subscription_modal():
+    return True
