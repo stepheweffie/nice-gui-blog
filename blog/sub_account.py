@@ -3,7 +3,7 @@ from post_list_layout import make_search_tab
 from db_utils import async_session
 from models import Subscriber
 from sqlalchemy import select
-from security_layer import dash_security_layer
+from security_layer import pass_security_layer
 
 
 async def update_subscriber() -> None:
@@ -59,7 +59,7 @@ def set_timer(switch: ui.switch) -> None:
 
 def lock_menu(switch: ui.switch, drawer: ui.left_drawer) -> None:
     if switch.value:
-        return dash_security_layer()
+        return pass_security_layer()
     drawer.toggle()
 
 
@@ -76,7 +76,7 @@ def header():
         times_in_seconds = zip(times, seconds)
         for time_str, time_sec in times_in_seconds:
             if minutes == time_str:
-                ui.timer(time_sec, lambda: dash_security_layer, once=True)
+                ui.timer(time_sec, lambda: pass_security_layer, once=True)
                 return time_sec
         time_card.visible = False
 
@@ -102,9 +102,6 @@ def header():
             with ui.row().classes('w-full no-wrap justify-end mt-4'):
                 ui.label('Account Settings').classes('text-3xl m-4')
                 ui.button('', icon='close', on_click=lambda: left_drawer.toggle()).classes('text-md')
-            with ui.page_sticky(position='bottom-right', x_offset=20, y_offset=20):
-                ui.button(on_click=ui.open('/logout'), icon='logout').props('fab')
-
             with ui.expansion('Subscriber Information').classes('w-full text-xl'):
                 with ui.row().classes('w-full no-wrap'):
                     ui.input('Email', value=app.storage.user.get('email')).classes(
