@@ -4,7 +4,7 @@ from db_utils import async_session
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from search_tab import make_search_tab
-from post_lists import post_preview
+from post_lists import post_preview, post_list
 from security_layer import pass_security_layer
 
 app_name = 'The Blog'
@@ -16,6 +16,7 @@ privacy = 'Privacy Policy'
 async def main_page(client: Client) -> None:
     authenticated = app.storage.user.get('authenticated')
     onboard(authenticated)
+    post_list()
 
 
 def onboard(authenticated) -> None:
