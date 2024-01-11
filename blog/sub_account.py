@@ -1,5 +1,5 @@
 from nicegui import ui, app
-from post_list_layout import make_search_tab
+from search_tab import make_search_tab
 from db_utils import async_session
 from models import Subscriber
 from sqlalchemy import select
@@ -71,8 +71,8 @@ def lock_menu(switch: ui.switch, drawer: ui.left_drawer) -> None:
 
 
 def create_search_footer():
-    search_footer_button = (ui.button('Search Posts', icon='search', on_click=lambda: search_footer.toggle())
-                                .classes('text-xl'))
+    search_footer_button = (ui.button('Search Posts', icon='search', on_click=lambda: search_footer.toggle()
+                                      ).classes('text-xl'))
     search_footer = ui.footer(value=False)
     with search_footer:
         ui.button('', icon='close', on_click=lambda: search_footer.toggle()).classes('text-md')
@@ -83,9 +83,10 @@ def create_search_footer():
 
 
 switches = {}
+buttons = {}
+
 auto_lock_switch = 'Timed Auto Lock'
 menu_lock_switch = 'Lock Menu'
-buttons = {}
 update_account_button_label = 'Update Account Info'
 update_password_button_label = 'Update Password'
 delete_account_button_label = 'Delete Account'
@@ -142,15 +143,15 @@ def sub_account():
     with time_card:
         ui.label('Lock Screen Timer').classes('text-3xl')
         with ui.row().classes('w-full no-wrap'):
-            time_opts = ['1 minute', '5 minutes', '10 minutes', '15 minutes', '30 minutes', '1 hour', '2 hours', '4 hours',
-                         '8 hours', '12 hours', '24 hours']
+            time_opts = ['1 minute', '5 minutes', '10 minutes', '15 minutes', '30 minutes', '1 hour', '2 hours',
+                         '4 hours', '8 hours', '12 hours', '24 hours']
             timer = ui.select(time_opts, value='30 minutes').classes('text-lg')
             timer.style(replace='margin-bottom: -5px;')
             ui.button('Save', on_click=lambda e: set_time_card(e, time_opts)).classes('w-full text-lg')
 
     with ui.header().classes(replace='row items-center'):
         if not authenticated:
-            ui.button(on_click=lambda: lock_menu(menu_lock, left_drawer), icon='menu').props('flat color=white')
+            ui.button(on_click=lambda: lock_menu(menu_lock, left_drawer), icon='menu').props('color=primary')
         ui.label('NiceGUI Blog').classes('text-4xl m-4')
 
     if not authenticated:
@@ -218,8 +219,6 @@ def sub_account():
                                                                                         ).classes('text-lg')
                 ui.button('Accept', on_click=true_cookie).style('color: black;')
                 ui.button('Decline', on_click=false_cookie).style('color: black;')
-
-
 
 
 

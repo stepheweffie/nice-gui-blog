@@ -9,7 +9,7 @@ import asyncio
 from db_utils import init_db, async_session
 import dash
 from sub_account import sub_account
-from post_list_layout import main_page
+from main_page import main_page
 from models import User
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
