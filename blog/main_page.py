@@ -24,6 +24,7 @@ def onboard(authenticated) -> None:
         with ui.column().classes('xs-col-12 sm-col-12 md-col-6 lg-col-6 xl-col-6'):
             ui.label('The Latest Posts').classes('text-3xl m-4')
             post_preview()
+
         if not authenticated:
             with ui.column().classes('xs-col-12 sm-col-12 md-col-6 lg-col-6 xl-col-6'):
                 subscribed = app.storage.user.get('subscribed')

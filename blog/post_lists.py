@@ -14,7 +14,7 @@ post_card_text = ['post-md-text-Lorem ipsum dolor sit amet,',
                   'consectetur adipiscing elit Nullam euismod',
                   'nisl eget aliquam lacinia,']
 
-titles = {'Post1 hhahahahahahaha': f'{title_texts[0]}', 'Post2': f'{title_texts[1]}', 'Post3': f'{title_texts[2]}'}
+titles = {'Post1': f'{title_texts[0]}', 'Post2': f'{title_texts[1]}', 'Post3': f'{title_texts[2]}'}
 blog_cards = {'Post1': f'{post_card_text[0]}', 'Post2': f'{post_card_text[1]}', 'Post3': f'{post_card_text[2]}'}
 
 post_date = datetime.datetime.now()
@@ -54,7 +54,9 @@ def post_preview():
 
                     # this row makes the width of the column
                     with ui.row().classes('w-full'):
+                        invisible = ui.label('').classes('w-96')
                         ui.label(title).classes(f'{title_text}')
+
                     with ui.row().classes('w-full'):
                         ui.label(post_sig).classes(f'{card_text}')
 
@@ -63,7 +65,7 @@ def post_preview():
 
 
 def post_list():
-    with ui.row().classes('w-full wrap flex mt-4'):
+    with ui.row().classes('w-full flex-wrap justify-center mt-4'):
         for title, image, post in zip(titles, thumbnail_images, blog_cards):
             with ui.column().classes('xs-col-12 sm-col-12 md-col-6 lg-col-6 xl-col-6'):
                 with ui.card().classes(f'{bg_class} {card_aspect_ratio} {card_shadow} {card_border_radius} '
@@ -75,6 +77,7 @@ def post_list():
                                 with ui.card().classes('w-full h-full'):
                                     with ui.row().classes('w-full h-full'):
                                         with ui.column().classes('w-full h-full'):
+
                                             ui.label(title).classes(f'{title_text} {post_text_color}')
                                             ui.label(post).classes(f'{card_text} {post_text_color}')
                                             ui.label(post_sig).classes(f'{card_text} {post_text_color}')
