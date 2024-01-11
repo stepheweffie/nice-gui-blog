@@ -84,27 +84,30 @@ def create_row_with_label_and_input(label_text, input_value, input_class, row_cl
         ui.input(label_text, value=input_value).classes(input_class)
 
 
-def create_row_with_button(button_dict, button_text, on_click_action, button_class='w-full text-lg', row_class='w-full no-wrap'):
+def create_row_with_button(button_dict, button_text, on_click_action, button_class='w-full text-lg',
+                           row_class='w-full no-wrap'):
     with ui.row().classes(row_class):
         button = ui.button(button_text, on_click=on_click_action).classes(button_class)
         button_dict[button_text] = button
         return button
 
 
-def create_row_with_switch(switch_dict, switch_label, switch_value, on_change_action=None, switch_class='text-lg', row_class='w-full no-wrap'):
+def create_row_with_switch(switch_dict, switch_label, switch_value, on_change_action=None, switch_class='text-lg',
+                           row_class='w-full no-wrap'):
     with ui.row().classes(row_class):
         switch = ui.switch(switch_label, value=switch_value, on_change=on_change_action).classes(switch_class)
         switch_dict[switch_label] = switch
         return switch
 
 
-def create_row_with_select_and_label(label_text, select_options, select_value, select_class='full-width text-lg', row_class='w-full no-wrap'):
+def create_row_with_select_and_label(label_text, select_options, select_value, select_class='full-width text-lg',
+                                     row_class='w-full no-wrap'):
     with ui.row().classes(row_class):
         ui.label(label_text).classes('text-lg')
         ui.select(select_options, value=select_value).classes(select_class)
 
 
-def header():
+def sub_account():
     authenticated = app.storage.user.get('authenticated')
     cookied = app.storage.user.get('cookie')
 
@@ -147,10 +150,17 @@ def header():
 
             with ui.expansion('Subscriber Information').classes('w-full text-xl'):
                 # In the 'Subscriber Information' section
-                create_row_with_label_and_input('Email', app.storage.user.get('email'),'full-width text-lg')
-                create_row_with_label_and_input('First Name', app.storage.user.get('first_name'), 'full-width text-lg')
-                create_row_with_label_and_input('Last Name', app.storage.user.get('last_name'), 'full-width text-lg')
-                create_row_with_label_and_input('Username', app.storage.user.get('username'), 'full-width text-lg')
+                utilities = 'w-full text-lg'
+                datas = ['email', 'first_name', 'last_name', 'username']
+                labels = ['Email', 'First_Name', 'Last_Name', 'Username']
+
+                def iterate_input_rows(text: str, att: str, classes: str):
+                    create_row_with_label_and_input(f'{text}', app.storage.user.get(f'{att}'),
+                                                    f'{classes}')
+
+                for label, data in zip(labels, datas):
+                    iterate_input_rows(label, data, utilities)
+
                 create_row_with_button(buttons, 'Update Account Info', lambda: update_subscriber())
 
             with ui.expansion('Manage Password').classes('w-full text-xl'):
@@ -169,10 +179,18 @@ def header():
             with ui.expansion('Manage Account').classes('w-full text-xl'):
                 # In the 'Manage Account' section
                 create_row_with_switch(switches, '2FA', False)
-                auto_lock = create_row_with_switch(switches, auto_lock_switch, False, set_time_card)
+                auto_lock = create_row_with_switch(switches, auto_lock_switch, False, call_time_card)
                 menu_lock = create_row_with_switch(switches, menu_lock_switch, False)
                 create_row_with_switch(switches, 'NSFW Notify', False)
                 create_row_with_button(buttons, 'Delete Account', on_click_action=lambda: delete_subscriber)
+
+        with ui.footer(value=True):
+            ui.button('Search Posts', on_click=lambda: search_footer.toggle())
+        search_footer = ui.footer(value=False)
+        with search_footer:
+            ui.button('', icon='close', on_click=lambda: search_footer.toggle()).classes('text-lg')
+            one_tab = ui.tab_panel('Search')
+            make_search_tab(one_tab)
 
     if not authenticated and not cookied:
         def true_cookie():
@@ -183,22 +201,14 @@ def header():
             true_cookie()
             app.storage.user.update({'cookie': False})
 
-        with ui.footer(value=True).classes('bg-blue-100') as cookie_footer:
-            ui.label('Cookie Info').style('color: black;').classes('text-2xl')
-            with ui.row():
-                ui.label('This website uses cookies to improve your experience.').style('color: black;')
+        with (ui.footer(value=True).classes('bg-blue-100') as cookie_footer):
+            with ui.row().classes('w-full no-wrap justify-end mt-4'):
+                ui.label('Cookie Notice').style('color: black;').classes('text-2xl')
+                ui.label('This website uses cookies to improve your experience.').style('color: black;'
+                                                                                        ).classes('text-lg')
                 ui.button('Accept', on_click=true_cookie).style('color: black;')
                 ui.button('Decline', on_click=false_cookie).style('color: black;')
 
-    if authenticated:
-        with ui.footer(value=True):
-            ui.button('Search Posts', on_click=lambda: search_footer.toggle())
-    if authenticated:
-        search_footer = ui.footer(value=False)
-        with search_footer:
-            ui.button('', icon='close', on_click=lambda: search_footer.toggle()).classes('text-xl')
-            one_tab = ui.tab_panel('Search')
-            make_search_tab(one_tab)
 
 
 

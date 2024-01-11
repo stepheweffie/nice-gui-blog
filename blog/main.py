@@ -8,19 +8,22 @@ from starlette.middleware.base import BaseHTTPMiddleware
 import asyncio
 from db_utils import init_db, async_session
 import dash
-from sub_account import header
+from sub_account import sub_account
 from post_list_layout import main_page
 from models import User
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 import subscribe
+
 unrestricted_page_routes = ['/']
 MENU_SWITCH = True
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-# router = APIRouter(prefix='/api')
+HTML_STATIC_PATH = os.path.join(ROOT_PATH, 'static/html')
 app_url = 'http://127.0.0.1:8080'
 PORT = 8080
 SERVE_HTML_TEMPLATE = False
+# router = APIRouter(prefix='/api')
+# app.include_router(router)
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -37,6 +40,14 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(AuthMiddleware)
+
+
+def use_html_template(use_template: bool, template: str) -> ui.html:
+    if use_template:
+        with open(os.path.join(HTML_STATIC_PATH, f'{template}.html')) as f:
+            html = ui.html(f.read())
+            return html
+    pass
 
 
 @ui.page('/login')
@@ -64,7 +75,6 @@ def login() -> Optional[RedirectResponse]:  # type: ignore
                         await session.rollback()
                         ui.open('/dashboard')
                         ui.notify('Please verify your email', color='negative')
-
                 else:
                     ui.notify('Wrong Password', color='negative')
 
@@ -81,26 +91,18 @@ def login() -> Optional[RedirectResponse]:  # type: ignore
 
 @ui.page(path='/')
 async def index(client: Client) -> None:
-
-    if SERVE_HTML_TEMPLATE:
-        html = 'assets/html/index.html'
-        with open(html, 'r') as f:
-            html = f.read()
-            ui.html(html)
-
-    else:
-        header()
-        await main_page(client)
+    use_html_template(SERVE_HTML_TEMPLATE, 'index')
+    sub_account()
+    await main_page(client)
 
 
 @ui.page('/logout')
 async def logout_page() -> Optional[RedirectResponse]:
-    print('logging out')
     try:
         await app.storage.user.update({'authenticated': False})
     except TypeError:
         pass
-    return RedirectResponse('/login')
+    return RedirectResponse('/')
 
 
 subscribe.create_subscription()
@@ -108,5 +110,5 @@ dash.create_dashboard()
 asyncio.run(init_db())
 
 if __name__ in {"__main__", "__mp_main__"}:
-    ui.run(uvicorn_logging_level='info', binding_refresh_interval=0.2, storage_secret='secret_key', port=PORT,
+    ui.run(uvicorn_logging_level='warning', binding_refresh_interval=0.2, storage_secret='secret_key', port=PORT,
            on_air=True)

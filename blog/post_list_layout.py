@@ -87,8 +87,8 @@ def make_search_tab(search_tab: ui.tab_panel) -> None:
 
             # Create a search field
             search_field = ui.input(on_change=search) \
-                .props('autofocus clearable outlined rounded item-aligned input-class="ml-3"') \
-                .classes('fit transition-all')
+                .props('autofocus clearable rounded outlined item-aligned input-class="ml-3"') \
+                .classes('fit transition-all mb-5')
             # Create a row for the search results
             with ui.scroll_area().classes('h-96 w-96').style('margin-top: -30px; margin-left: -10px;'):
                 results = ui.column().classes('full-width')

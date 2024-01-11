@@ -1,18 +1,18 @@
-from nicegui import ui, app, Client
-from typing import Optional
-from fastapi.responses import RedirectResponse
+from nicegui import ui, app
 
 
 def create_subscription():
     @ui.page('/subscribe')
-    async def subscribe(client: Client) -> Optional[RedirectResponse]:
+    async def subscribe():
         if app.storage.user.get('authenticated', False):
-            return RedirectResponse('/')
+            subscription_modal()
+        subscriber_modal()
 
 
 def subscription_modal():
     return True
 
 
-def cart_modal():
+def subscriber_modal():
     return True
+
