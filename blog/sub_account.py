@@ -197,7 +197,8 @@ def sub_account():
                 create_row_with_switch(switches, 'NSFW Notify', False)
                 create_row_with_button(buttons, 'Delete Account', on_click_action=lambda: delete_subscriber)
 
-        with ui.footer(value=True).style(replace='position: absolute; bottom: 0; left: 0; z-index: 10000;'):
+        with ui.footer(value=True).style(
+                replace='position: absolute; bottom: 0; left: 0; z-index: 10000;'):
             create_search_footer()
             logout_button = ui.button('', icon='logout', on_click=lambda: app.storage.user.update({'authenticated': False}))
             # list of links in a row
