@@ -70,6 +70,18 @@ def lock_menu(switch: ui.switch, drawer: ui.left_drawer) -> None:
     drawer.toggle()
 
 
+def create_search_footer():
+    search_footer_button = (ui.button('Search Posts', icon='search', on_click=lambda: search_footer.toggle())
+                                .classes('text-xl'))
+    search_footer = ui.footer(value=False)
+    with search_footer:
+        ui.button('', icon='close', on_click=lambda: search_footer.toggle()).classes('text-md')
+        with ui.row():
+            one_tab = ui.tab_panel('Search')
+            make_search_tab(one_tab)
+    return search_footer_button
+
+
 switches = {}
 auto_lock_switch = 'Timed Auto Lock'
 menu_lock_switch = 'Lock Menu'
@@ -130,15 +142,15 @@ def sub_account():
     with time_card:
         ui.label('Lock Screen Timer').classes('text-3xl')
         with ui.row().classes('w-full no-wrap'):
-            timer = ui.select(
-                ['1 minute', '5 minutes', '10 minutes', '15 minutes', '30 minutes', '1 hour', '2 hours', '4 hours',
-                 '8 hours', '12 hours', '24 hours'], value='30 minutes').classes('text-lg')
-            ui.button('Save', on_click=lambda e: set_time_card(e, options)).classes('w-full text-lg')
+            time_opts = ['1 minute', '5 minutes', '10 minutes', '15 minutes', '30 minutes', '1 hour', '2 hours', '4 hours',
+                         '8 hours', '12 hours', '24 hours']
+            timer = ui.select(time_opts, value='30 minutes').classes('text-lg')
+            timer.style(replace='margin-bottom: -5px;')
+            ui.button('Save', on_click=lambda e: set_time_card(e, time_opts)).classes('w-full text-lg')
 
     with ui.header().classes(replace='row items-center'):
         if not authenticated:
             ui.button(on_click=lambda: lock_menu(menu_lock, left_drawer), icon='menu').props('flat color=white')
-
         ui.label('NiceGUI Blog').classes('text-4xl m-4')
 
     if not authenticated:
@@ -184,13 +196,11 @@ def sub_account():
                 create_row_with_switch(switches, 'NSFW Notify', False)
                 create_row_with_button(buttons, 'Delete Account', on_click_action=lambda: delete_subscriber)
 
-        with ui.footer(value=True):
-            ui.button('Search Posts', on_click=lambda: search_footer.toggle())
-        search_footer = ui.footer(value=False)
-        with search_footer:
-            ui.button('', icon='close', on_click=lambda: search_footer.toggle()).classes('text-lg')
-            one_tab = ui.tab_panel('Search')
-            make_search_tab(one_tab)
+        with ui.footer(value=True).style(replace='position: absolute; bottom: 0; left: 0; z-index: 10000;'):
+            create_search_footer()
+            logout_button = ui.button('', icon='logout', on_click=lambda: app.storage.user.update({'authenticated': False}))
+            # list of links in a row
+            logout_button.classes('text-xl').style(replace='position: absolute; bottom: 10; right: 0;')
 
     if not authenticated and not cookied:
         def true_cookie():
