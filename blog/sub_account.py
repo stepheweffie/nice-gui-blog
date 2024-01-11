@@ -6,50 +6,57 @@ from sqlalchemy import select
 from security_layer import pass_security_layer
 
 
-async def update_subscriber() -> None:
-    async with async_session() as session:
-        try:
-            find = select(Subscriber).where(Subscriber.email == app.storage.user.get('email'))
-            result = await session.execute(find)
-            subscriber = result.scalars().first()
-            print(subscriber.code)
-            await session.commit()
-        except Exception as e:
-            session.rollback()
-            print(f"An error occurred: {e}")
-        finally:
-            session.close()
+# Decorator for handling session and exceptions
+def session_manager(func):
+    async def wrapper(*args, **kwargs):
+        async with async_session() as session:
+            try:
+                return await func(session, *args, **kwargs)
+            except Exception as e:
+                session.rollback()
+                print(f"An error occurred: {e}")
+            finally:
+                session.close()
+    return wrapper
 
 
-async def delete_subscriber() -> None:
-    async with async_session() as session:
-        try:
-            find = select(Subscriber).where(Subscriber.email == app.storage.user.get('email'))
-            result = await session.execute(find)
-            subscriber = result.scalars().first()
-            session.delete(subscriber)
-            await session.commit()
-        except Exception as e:
-            session.rollback()
-            print(f"An error occurred: {e}")
-        finally:
-            session.close()
+# Function to get subscriber based on email
+async def get_subscriber(session, email: str):
+    # Ensure that email is a string
+    if not isinstance(email, str):
+        raise ValueError("Email must be a string")
+
+    find = select(Subscriber).where(Subscriber.email == email)
+    result = await session.execute(find)
+    return result.scalars().first()
 
 
-async def update_password(button: ui.button) -> None:
+# Refactored subscriber update function
+@session_manager
+async def update_subscriber(session) -> None:
+    subscriber = await get_subscriber(session, app.storage.user.get('email'))
+    if subscriber:
+        print(subscriber.code)
+        await session.commit()
+
+
+# Refactored subscriber delete function
+@session_manager
+async def delete_subscriber(session) -> None:
+    subscriber = await get_subscriber(session, app.storage.user.get('email'))
+    if subscriber:
+        session.delete(subscriber)
+        await session.commit()
+
+
+# Refactored update password function
+@session_manager
+async def update_password(session, button: ui.button) -> None:
     button.visible = False
-    async with async_session() as session:
-        try:
-            find = select(Subscriber).where(Subscriber.email == app.storage.user.get('email'))
-            result = await session.execute(find)
-            subscriber = result.scalars().first()
-            print(subscriber.code)
-            await session.commit()
-        except Exception as e:
-            session.rollback()
-            print(f"An error occurred: {e}")
-        finally:
-            session.close()
+    subscriber = await get_subscriber(session, app.storage.user.get('email'))
+    if subscriber:
+        print(subscriber.code)
+        await session.commit()
 
 
 def set_timer(switch: ui.switch) -> None:
@@ -61,6 +68,40 @@ def lock_menu(switch: ui.switch, drawer: ui.left_drawer) -> None:
     if switch.value:
         return pass_security_layer()
     drawer.toggle()
+
+
+switches = {}
+auto_lock_switch = 'Timed Auto Lock'
+menu_lock_switch = 'Lock Menu'
+buttons = {}
+update_account_button_label = 'Update Account Info'
+update_password_button_label = 'Update Password'
+delete_account_button_label = 'Delete Account'
+
+
+def create_row_with_label_and_input(label_text, input_value, input_class, row_class='w-full no-wrap'):
+    with ui.row().classes(row_class):
+        ui.input(label_text, value=input_value).classes(input_class)
+
+
+def create_row_with_button(button_dict, button_text, on_click_action, button_class='w-full text-lg', row_class='w-full no-wrap'):
+    with ui.row().classes(row_class):
+        button = ui.button(button_text, on_click=on_click_action).classes(button_class)
+        button_dict[button_text] = button
+        return button
+
+
+def create_row_with_switch(switch_dict, switch_label, switch_value, on_change_action=None, switch_class='text-lg', row_class='w-full no-wrap'):
+    with ui.row().classes(row_class):
+        switch = ui.switch(switch_label, value=switch_value, on_change=on_change_action).classes(switch_class)
+        switch_dict[switch_label] = switch
+        return switch
+
+
+def create_row_with_select_and_label(label_text, select_options, select_value, select_class='full-width text-lg', row_class='w-full no-wrap'):
+    with ui.row().classes(row_class):
+        ui.label(label_text).classes('text-lg')
+        ui.select(select_options, value=select_value).classes(select_class)
 
 
 def header():
@@ -93,7 +134,8 @@ def header():
 
     with ui.header().classes(replace='row items-center'):
         if not authenticated:
-            ui.button(on_click=lambda: lock_menu(menu_lock_switch, left_drawer), icon='menu').props('flat color=white')
+            ui.button(on_click=lambda: lock_menu(menu_lock, left_drawer), icon='menu').props('flat color=white')
+
         ui.label('NiceGUI Blog').classes('text-4xl m-4')
 
     if not authenticated:
@@ -102,79 +144,35 @@ def header():
             with ui.row().classes('w-full no-wrap justify-end mt-4'):
                 ui.label('Account Settings').classes('text-3xl m-4')
                 ui.button('', icon='close', on_click=lambda: left_drawer.toggle()).classes('text-md')
+
             with ui.expansion('Subscriber Information').classes('w-full text-xl'):
-                with ui.row().classes('w-full no-wrap'):
-                    ui.input('Email', value=app.storage.user.get('email')).classes(
-                        'full-width text-lg')
-
-                with ui.row().classes('w-full no-wrap'):
-                    name_input = ui.input('First Name', value=app.storage.user.get('first_name')).classes(
-                        'full-width text-lg')
-
-                with ui.row().classes('w-full no-wrap'):
-                    lname_input = ui.input('Last Name', value=app.storage.user.get('last_name')).classes(
-                        'full-width text-lg')
-
-                with ui.row().classes('w-full no-wrap'):
-                    username_input = ui.input('Username', value=app.storage.user.get('username')).classes(
-                        'full-width text-lg')
-
-                with ui.row().classes('w-full no-wrap justify-center'):
-                    ui.button('Update Account Info', on_click=lambda: update_subscriber()).classes('w-full text-lg')
+                # In the 'Subscriber Information' section
+                create_row_with_label_and_input('Email', app.storage.user.get('email'),'full-width text-lg')
+                create_row_with_label_and_input('First Name', app.storage.user.get('first_name'), 'full-width text-lg')
+                create_row_with_label_and_input('Last Name', app.storage.user.get('last_name'), 'full-width text-lg')
+                create_row_with_label_and_input('Username', app.storage.user.get('username'), 'full-width text-lg')
+                create_row_with_button(buttons, 'Update Account Info', lambda: update_subscriber())
 
             with ui.expansion('Manage Password').classes('w-full text-xl'):
-                with ui.row().classes('w-full no-wrap'):
-                    code_button = ui.button('Send Code', on_click=lambda: update_password(code_button)).classes(
-                        'w-full text-lg')
-                    resend_button = ui.button('Resend Code', on_click=lambda: update_password(resend_button)).classes(
-                        'w-full text-lg')
-
-                    resend_button.visible = not code_button.visible
-
-                with ui.row().classes('w-full no-wrap'):
-                    ui.input('New Password', password=True, password_toggle_button=True).classes(
-                        'full-width text-lg')
-
-                with ui.row().classes('w-full no-wrap'):
-                    ui.input('Verification Code', password=True, password_toggle_button=True).classes(
-                        'full-width text-lg')
-
-                with ui.row().classes('w-full no-wrap'):
-                    ui.button('Save', on_click=lambda: update_password()).classes('w-full text-lg')
+                # In the 'Manage Password' section
+                create_row_with_button(buttons, update_password_button_label, lambda: update_password())
 
             with ui.expansion('Manage Subscription').classes('w-full text-xl'):
-                with ui.row().classes('w-full no-wrap'):
-                    ui.label('Current Subscription Tier: ').classes('text-lg')
-                    ui.label(app.storage.user.get('tier')).classes('text-lg')
-
-                with ui.row().classes('w-full no-wrap'):
-                    options = ['Free', 'Tier 1', 'Tier 2', 'Tier 3']
-                    tier_select = ui.select(options, label='Change Subscription Tier', value=app.storage.user.get('tier')).classes(
-                        'full-width text-lg')
-
-                with ui.row().classes('w-full no-wrap'):
-                    ui.button('Update Subscription', on_click=lambda: update_subscriber()).classes('w-full text-lg')
+                # In the 'Manage Subscription' section
+                sub_tier = app.storage.user.get('tier')
+                ui.label(f'Current Tier: {sub_tier}').classes('text-md')
+                create_row_with_button(buttons, 'Update Subscription', lambda: update_subscriber())
 
             with ui.expansion('Payment Information').classes('w-full text-xl'):
-                with ui.row().classes('w-full no-wrap'):
-                    ui.button('Change Payment Method', on_click=lambda: update_subscriber()).classes('w-full text-lg')
+                create_row_with_button(buttons, 'Update Payment Info', lambda: update_subscriber())
 
             with ui.expansion('Manage Account').classes('w-full text-xl'):
-                with ui.row().classes('w-full no-wrap'):
-                    two_factor_switch = ui.switch('2FA', value=False).classes('text-lg')
-
-                with ui.row().classes('w-full no-wrap'):
-                    auto_lock = ui.switch('Auto Locking Screen', value=False, on_change=call_time_card).classes(
-                        'text-lg')
-
-                with ui.row().classes('w-full no-wrap'):
-                    ui.switch('NSFW Notify', value=False).classes('text-lg')
-
-                with ui.row().classes('w-full no-wrap'):
-                    menu_lock_switch = ui.switch('Lock Account Menu', value=False).classes('text-lg')
-
-                with ui.row().classes('w-full no-wrap justify-center'):
-                    ui.button('Delete Account', on_click=lambda: delete_subscriber).classes('w-full text-lg')
+                # In the 'Manage Account' section
+                create_row_with_switch(switches, '2FA', False)
+                auto_lock = create_row_with_switch(switches, auto_lock_switch, False, set_time_card)
+                menu_lock = create_row_with_switch(switches, menu_lock_switch, False)
+                create_row_with_switch(switches, 'NSFW Notify', False)
+                create_row_with_button(buttons, 'Delete Account', on_click_action=lambda: delete_subscriber)
 
     if not authenticated and not cookied:
         def true_cookie():
@@ -189,7 +187,7 @@ def header():
             ui.label('Cookie Info').style('color: black;').classes('text-2xl')
             with ui.row():
                 ui.label('This website uses cookies to improve your experience.').style('color: black;')
-                ui.button('Accept', on_click= true_cookie).style('color: black;')
+                ui.button('Accept', on_click=true_cookie).style('color: black;')
                 ui.button('Decline', on_click=false_cookie).style('color: black;')
 
     if authenticated:
