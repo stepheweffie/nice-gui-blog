@@ -15,122 +15,143 @@ privacy = 'Privacy Policy'
 
 async def main_page(client: Client) -> None:
     authenticated = app.storage.user.get('authenticated')
-    onboard(authenticated)
     post_list()
+    # if authenticated finish the post list
+    if not authenticated:
+        with ui.row().classes('w-full wrap mt-4 justify-center'):
+            with ui.card().classes('w-1/2'):
+                onboard(authenticated)
+    if not authenticated:
+        post_search(authenticated)
 
 
-def onboard(authenticated) -> None:
-    with ui.row().classes('w-full wrap flex justify-start mt-4'):
-        with ui.column().classes('xs-col-12 sm-col-12 md-col-6 lg-col-6 xl-col-6'):
+def post_search(authenticated) -> None:
+    with ui.row().classes('w-full wrap flex justify-center mt-4'):
+        if authenticated:
+            authed_classes = 'w-full h-full'
+        else:
+            authed_classes = 'h-full'
+
+        with ui.column().classes(f'{authed_classes}'):
             ui.label('The Latest Posts').classes('text-3xl m-4')
-            post_preview()
+            post_preview(authenticated)
 
-        if not authenticated:
-            with ui.column().classes('xs-col-12 sm-col-12 md-col-6 lg-col-6 xl-col-6'):
+    if not authenticated:
+        with ui.row().classes('w-full justify-start'):
+            with ui.column().classes('w-full h-full mb-40'):
                 subscribed = app.storage.user.get('subscribed')
 
                 with ui.tabs() as tabs:
                     one = ui.tab('Search')
-                    two_tab = ui.tab('Verify')
-                    two_tab.visible = subscribed
-                    two_two = ui.tab('Subscribe')
-                    two_two.visible = not subscribed
-                    three = ui.tab('Login')
 
-                with ui.tab_panels(tabs, value=one):
+                with ui.tab_panels(tabs, value=one).style('position: absolute;'):
                     one_tab = ui.tab_panel(one)
                     make_search_tab(one_tab)
 
-                    async def verify_subscriber() -> None:
-                        async with async_session() as session:
-                            try:
-                                find = select(Subscriber).where(Subscriber.email == app.storage.user.get('email'))
-                                result = await session.execute(find)
-                                subscriber = result.scalars().first()
-                                subscriber.verify_subscriber(signup_password, signup_code.value)
-                                await session.commit()
-                            except IntegrityError:
-                                pass
-                            app.storage.user.update({'authenticated': True})
-                            ui.notify('Login Successful', color='positive')
-                            await session.rollback()
-                            # set_visibility to cart modal on /
-                            ui.open('/')
 
-                    with ui.tab_panel(two_tab):
-                        with ui.column().classes('items-center'):
-                            with ui.card().classes('w-96'):
-                                ui.label('Verify').classes('text-xl h-full')
-                                signup_password = ui.input('Password').classes('w-full')
-                                signup_code = ui.input('Secret Code').classes('w-full')
-                                ui.button('Verify and Login', on_click=verify_subscriber).classes(
-                                    'w-full transition-all')
+def onboard(authenticated):
+    with ui.tabs() as tabs:
+        subscribed = app.storage.user.get('subscribed')
+        sub_tab = ui.tab('Subscribe')
+        sub_tab.visible = not subscribed
+        login_tab = ui.tab('Login')
+        verify_tab = ui.tab('Verify')
+        verify_tab.visible = subscribed
 
-                            with ui.row():
-                                ui.label(f"By subscribing, you agree to our").classes('text-sm')
-                                ui.link(f"{terms}").classes('text-sm')
-                                ui.label(f"and").classes('text-sm')
-                                ui.link(f"{privacy}").classes('text-sm')
+    with ui.tab_panels(tabs if not subscribed else None, value=sub_tab if not subscribed else verify_tab):
 
-                    async def create_subscriber() -> None:
-                        async with async_session() as session:
-                            try:
-                                sub = Subscriber()
-                                sub.email = signup_email.value
-                                sub.tier = 'Free'
-                                sub.create_subscriber(sub.email, sub.tier)
-                                session.add(sub)
-                                await session.commit()
-                                ui.notify(f'Subscription Successful. Please check {signup_email.value}', color='positive')
-                                app.storage.user.update(
-                                    {'email': signup_email.value, 'authenticated': False, 'is_admin': False,
-                                     'subscribed': True})
-                                app.storage.user.update({'first_name': "Enter First Name"})
-                                app.storage.user.update({'last_name': "Enter Last Name"})
-                                app.storage.user.update({'username': "Enter A Username"})
-                                app.storage.user.update({'tier': "Free"})
-                                await session.rollback()
-                            except IntegrityError:
-                                ui.notify('Email already exists', color='negative')
-                            ui.open('/')
+        async def create_subscriber() -> None:
+            async with async_session() as session:
+                try:
+                    sub = Subscriber()
+                    sub.email = signup_email.value
+                    sub.tier = 'Free'
+                    sub.create_subscriber(sub.email, sub.tier)
+                    session.add(sub)
+                    await session.commit()
+                    ui.notify(f'Subscription Successful. Please check {signup_email.value}', color='positive')
+                    app.storage.user.update(
+                        {'email': signup_email.value, 'authenticated': False, 'is_admin': False,
+                         'subscribed': True})
+                    app.storage.user.update({'first_name': "Enter First Name"})
+                    app.storage.user.update({'last_name': "Enter Last Name"})
+                    app.storage.user.update({'username': "Enter A Username"})
+                    app.storage.user.update({'tier': "Free"})
+                    await session.rollback()
+                except IntegrityError:
+                    ui.notify('Email already exists', color='negative')
+                ui.open('/')
 
-                    with ui.tab_panel(two_two):
-                        with ui.column().classes('items-center'):
-                            with ui.card().classes('w-96'):
-                                ui.label('Free Subscription Access').classes('text-xl h-full')
-                                signup_email = ui.input('Email').classes('w-full')
-                                ui.button('Subscribe', on_click=create_subscriber).classes('w-full transition-all')
-                            with ui.row():
-                                ui.label(f"By subscribing, you agree to our").classes('text-sm')
-                                ui.link(f"{terms}").classes('text-sm')
-                                ui.label(f"and").classes('text-sm')
-                                ui.link(f"{privacy}").classes('text-sm')
+        with ui.tab_panel(sub_tab).classes('justify-center'):
+            with ui.column().classes('w-full h-full'):
+                with ui.card().classes('w-96'):
+                    ui.label('Free Subscription Access').classes('text-xl h-full')
+                    signup_email = ui.input('Email').classes('w-full')
+                    ui.button('Subscribe', on_click=create_subscriber).classes('w-full transition-all')
+                with ui.row().classes('justify-center'):
+                    ui.label(f"By subscribing, you agree to our").classes('text-sm')
+                    ui.link(f"{terms}").classes('text-sm')
+                    ui.label(f"and").classes('text-sm')
+                    ui.link(f"{privacy}").classes('text-sm')
 
-                    async def login_subscriber() -> None:
-                        async with async_session() as session:
-                            try:
-                                find = select(Subscriber).where(Subscriber.email == sub_email.value)
-                                result = await session.execute(find)
-                                subscriber = result.scalars().first()
-                            except IntegrityError:
-                                pass
-                            if subscriber.check_password(sub_pass.value):
-                                if subscriber.verified is True:  # change to True for production
-                                    app.storage.user.update(
-                                        {'email': sub_email.value, 'authenticated': True, 'is_admin': False})
-                                    print('user authenticated', authenticated)
-                                    await session.rollback()
-                                    ui.notify('Login Successful', color='positive')
+        async def login_subscriber() -> None:
+            async with async_session() as session:
+                try:
+                    find = select(Subscriber).where(Subscriber.email == sub_email.value)
+                    result = await session.execute(find)
+                    subscriber = result.scalars().first()
+                except IntegrityError:
+                    pass
+                if subscriber.check_password(sub_pass.value):
+                    if subscriber.verified is True:  # change to True for production
+                        app.storage.user.update(
+                            {'email': sub_email.value, 'authenticated': True, 'is_admin': False})
+                        print('user authenticated', authenticated)
+                        await session.rollback()
+                        ui.notify('Login Successful', color='positive')
 
-                    three_tab = ui.tab_panel(three)
-                    with three_tab:
-                        with ui.column().classes('items-center'):
-                            with ui.card().classes('w-96 ml-10'):
-                                ui.label('Login').classes('text-xl h-full')
-                                sub_email = ui.input('User Email').classes('w-full')
-                                sub_pass = ui.input('Password', password=True, password_toggle_button=True)\
-                                    .classes('w-full')
-                                ui.button('Log in', on_click=login_subscriber).classes('w-full')
-                            with ui.row():
-                                ui.link('Forgot Password?').classes('w-full')
+        with ui.tab_panel(login_tab).classes('justify-center'):
+            with ui.column().classes('w-full h-full'):
+                with ui.card().classes('w-96'):
+                    ui.label('Login').classes('text-xl h-full')
+                    sub_email = ui.input('User Email').classes('w-full')
+                    sub_pass = ui.input('Password', password=True, password_toggle_button=True) \
+                        .classes('w-full')
+                    ui.button('Log in', on_click=login_subscriber).classes('w-full')
+                with ui.row().classes('justify-center'):
+                    # Why does this not justify center? crayfish
+                    ui.link('Forgot Password?').classes('text-sm')
+                    invisible = ui.label('').classes('w-96')
 
+        async def verify_subscriber() -> None:
+            async with async_session() as session:
+                try:
+                    find = select(Subscriber).where(Subscriber.email == app.storage.user.get('email'))
+                    result = await session.execute(find)
+                    subscriber = result.scalars().first()
+                    subscriber.verify_subscriber(signup_password, signup_code.value)
+                    await session.commit()
+                except IntegrityError:
+                    pass
+                app.storage.user.update({'authenticated': True})
+                ui.notify('Login Successful', color='positive')
+                await session.rollback()
+                # set_visibility to cart modal on /
+                ui.open('/')
+
+        verify_tab = ui.tab('Verify')
+        verify_tab.visible = subscribed
+        with ui.tab_panel(verify_tab).classes('justify-center'):
+            with ui.column().classes('w-full h-full'):
+                with ui.card().classes('w-96'):
+                    ui.label('Verify').classes('text-xl h-full')
+                    signup_password = ui.input('Password').classes('w-full')
+                    signup_code = ui.input('Secret Code').classes('w-full')
+                    ui.button('Verify and Login', on_click=verify_subscriber).classes(
+                        'w-full transition-all')
+
+                with ui.row().classes('justify-center'):
+                    ui.label(f"By subscribing, you agree to our").classes('text-sm')
+                    ui.link(f"{terms}").classes('text-sm')
+                    ui.label(f"and").classes('text-sm')
+                    ui.link(f"{privacy}").classes('text-sm')

@@ -150,11 +150,12 @@ def sub_account():
             ui.button('Save', on_click=lambda e: set_time_card(e, time_opts)).classes('w-full text-lg')
 
     with ui.header().classes(replace='row items-center'):
-        if not authenticated:
-            ui.button(on_click=lambda: lock_menu(menu_lock, left_drawer), icon='menu').props('color=primary')
+        if authenticated:
+            ui.button(on_click=lambda: lock_menu(menu_lock, left_drawer), icon='menu').props('color=primary')\
+                .classes('ml-4')
         ui.label('NiceGUI Blog').classes('text-4xl m-4')
 
-    if not authenticated:
+    if authenticated:
         # get user info from db and app.storage first
         with ui.left_drawer(value=False).classes('mx-auto p-0') as left_drawer:
             with ui.row().classes('w-full no-wrap justify-end mt-4'):
@@ -198,9 +199,10 @@ def sub_account():
                 create_row_with_button(buttons, 'Delete Account', on_click_action=lambda: delete_subscriber)
 
         with ui.footer(value=True).style(
-                replace='position: absolute; bottom: 0; left: 0; z-index: 10000;'):
+                replace='position: fixed; bottom: 0; left: 0; z-index: 10000;'):
             create_search_footer()
-            logout_button = ui.button('', icon='logout', on_click=lambda: app.storage.user.update({'authenticated': False}))
+            logout_button = ui.button('', icon='logout', on_click=lambda: app.storage.user.update(
+                {'authenticated': False}))
             # list of links in a row
             logout_button.classes('text-xl').style(replace='position: absolute; bottom: 10; right: 0;')
 

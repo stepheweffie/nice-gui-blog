@@ -44,7 +44,7 @@ post_text_color = 'text-violet-600'
 post_sig = f'Posted by {app_name} on ' + post_date.strftime('%B %d, %Y')
 
 
-def post_preview():
+def post_preview(authenticated):
     with ui.row().classes('w-full wrap mt-4 justify-center'):
         auth_card = ui.card()
         for title, image, post in zip(titles, thumbnail_images, blog_cards):
@@ -57,22 +57,21 @@ def post_preview():
                         invisible = ui.label('').classes('w-96')
                         ui.label(title).classes(f'{title_text}')
 
-                    with ui.row().classes('w-full'):
-                        ui.label(post_sig).classes(f'{card_text}')
-
                     with ui.row().classes('w-full h-full'):
                         ui.image(image).classes('w-full h-full')
 
+                    with ui.row().classes('w-full'):
+                        ui.label(post_sig).classes(f'{card_text}')
+
 
 def post_list():
-    with ui.row().classes('w-full flex-wrap justify-center mt-4'):
+    with ui.row().classes('w-full flex-wrap justify-center'):
         for title, image, post in zip(titles, thumbnail_images, blog_cards):
-            with ui.column().classes('mb-40'):
-                with ui.card().classes(f'{bg_class} {card_aspect_ratio} {card_shadow} {card_border_radius} '
-                                       f'{card_size} {card_style} {card_row} {card_col}'):
-                    ui.image(image).classes('w-full h-full')
-                    invisible = ui.label('').classes('w-96')
-                    ui.label(title).classes(f'{title_text}')
+            with ui.card().classes(f'{bg_class} {card_aspect_ratio} {card_shadow} {card_border_radius} '
+                                   f'{card_size} {card_style} {card_row} {card_col}').classes('mb-40'):
+                ui.image(image).classes('w-full h-full')
+                invisible = ui.label('').classes('w-96')
+                ui.label(title).classes(f'{title_text}')
 
 
 
