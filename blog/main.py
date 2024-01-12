@@ -93,6 +93,7 @@ def login() -> Optional[RedirectResponse]:  # type: ignore
 async def index(client: Client) -> None:
     use_html_template(SERVE_HTML_TEMPLATE, 'index')
     sub_account()
+    # to use authenticated, the functions must be called in a page like this
     await main_page(client)
 
 
