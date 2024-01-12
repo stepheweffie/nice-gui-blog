@@ -5,7 +5,6 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from search_tab import make_search_tab
 from post_lists import post_preview, post_list
-from security_layer import pass_security_layer
 
 app_name = 'The Blog'
 brand_name = 'My Brand'
@@ -19,7 +18,7 @@ async def main_page(client: Client) -> None:
     # if authenticated finish the post list
     if not authenticated:
         with ui.row().classes('w-full wrap mt-4 justify-center'):
-            with ui.card().classes('w-1/2'):
+            with ui.card().style('height: 60vh;, min-width: 55%; width: 100%;'):
                 onboard(authenticated)
     if not authenticated:
         post_search(authenticated)
@@ -58,7 +57,7 @@ def onboard(authenticated):
         verify_tab = ui.tab('Verify')
         verify_tab.visible = subscribed
 
-    with ui.tab_panels(tabs if not subscribed else None, value=sub_tab if not subscribed else verify_tab):
+    with ui.tab_panels(tabs, value=sub_tab if not subscribed else verify_tab):
 
         async def create_subscriber() -> None:
             async with async_session() as session:
